@@ -70,6 +70,8 @@ github.com/newrelic/go-agent/v3 v3.35.0 h1:YIG6mhwzIEBaaG3YmxPHgBfBFmHNoChxbKYH5
 github.com/newrelic/go-agent/v3 v3.35.0/go.mod h1:GNTda53CohAhkgsc7/gqSsJhDZjj8vaky5u+vKz7wqM=
 github.com/nocturna-ta/common-model v1.5.0 h1:0zPzGpl0piF181oxj/8Veka1AVERJ+JSdvOBq9YteYE=
 github.com/nocturna-ta/common-model v1.5.0/go.mod h1:ri/K6cjFoDwvTB0y6YVSE9vWpp1RPMOOenfLj+2qVPY=
+github.com/nocturna-ta/common-model v1.6.0 h1:/mXKd601ZuHuqWLASJ0VW4WB/DIjfue7Rb5kiV21KPs=
+github.com/nocturna-ta/common-model v1.6.0/go.mod h1:ri/K6cjFoDwvTB0y6YVSE9vWpp1RPMOOenfLj+2qVPY=
 github.com/nocturna-ta/golib v1.0.3 h1:D7nGelWSFlKplarHFanprpuigxpd1+0G5qZsLmcmhvM=
 github.com/nocturna-ta/golib v1.0.3/go.mod h1:PHxSA/fkpTUgKvYKNXNkBtalgiBz9Jd9fgoWbO/uOMM=
 github.com/nocturna-ta/golib v1.1.10 h1:b8rKtKlMBb7Lhps0SjN49drn5Jq1/2mkDHTBwrJWLEg=

@@ -33,7 +33,7 @@ type OptsVoteRepository struct {
 	DB              *sql.Store
 }
 
-func NewBlockchainRepository(opts *OptsVoteRepository) (repository.VoteRepository, error) {
+func NewVoteRepository(opts *OptsVoteRepository) (repository.VoteRepository, error) {
 	var contractInterface interfaces.ElectionManagerInterface
 	contract, err := electionManager.NewElectionManager(opts.ContractAddress, opts.Client.GetEthClient())
 	if err != nil {
@@ -103,7 +103,7 @@ func (v *VoteRepository) GetVoteByID(ctx context.Context, id uuid.UUID) (*model.
 		args []any
 	)
 
-	selectQuery := `SELECT id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
+	selectQuery := `id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
 	whereClause := `AND id = $1 AND is_deleted = false`
 	joinQuery := ``
 	args = append(args, id)
@@ -145,7 +145,7 @@ func (v *VoteRepository) GetVoteByElectionPairID(ctx context.Context, electionPa
 		args []any
 	)
 
-	selectQuery := `SELECT id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
+	selectQuery := `id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
 	whereClause := `AND election_pair_id = $1 AND is_deleted = false`
 	joinQuery := ``
 	args = append(args, electionPairID)
@@ -222,4 +222,40 @@ func (v *VoteRepository) UpdateVoteStatus(ctx context.Context, id uuid.UUID, sta
 	}
 
 	return nil
+}
+
+func (v *VoteRepository) HasVoted(ctx context.Context, voterID uuid.UUID) (bool, error) {
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.HasVoted")
+	defer span.End()
+
+	sqlTrx := utils.GetSqlTx(ctx)
+	var (
+		count int
+		err   error
+		args  []any
+	)
+
+	selectQuery := `COUNT(*)`
+
+	whereQuery := `AND voter_id = $1 AND is_deleted = false`
+
+	joinQuery := ``
+
+	args = append(args, voterID)
+	query := fmt.Sprintf(selectVoteQuery, selectQuery, joinQuery, whereQuery)
+	if sqlTrx != nil {
+		err = sqlTrx.GetContext(ctx, &count, query, args...)
+	} else {
+		err = v.db.GetMaster().GetContext(ctx, &count, query, args...)
+	}
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":   err,
+			"voterID": voterID,
+		}).ErrorWithCtx(ctx, "[VoteRepository.HasVoted] Failed to get vote count")
+		return false, err
+	}
+
+	return count > 0, nil
+
 }

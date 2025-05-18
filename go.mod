@@ -32,7 +32,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/newrelic/go-agent/v3 v3.35.0 // indirect
-	github.com/nocturna-ta/common-model v1.5.0 // indirect
+	github.com/nocturna-ta/common-model v1.6.0 // indirect
 	github.com/nocturna-ta/votechain-contract v1.2.6 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect

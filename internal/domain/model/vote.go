@@ -24,3 +24,12 @@ type Vote struct {
 	TransactionHash string     `db:"transaction_hash"`
 	Region          string     `db:"region"`
 }
+
+type Voter struct {
+	BaseModel
+	ID      uuid.UUID `db:"id"`
+	KTP     string    `db:"ktp"`
+	Name    string    `db:"name"`
+	Address string    `db:"address"`
+	Region  string    `db:"region"`
+}
