@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"github.com/nocturna-ta/vote/internal/usecases/request"
 	"time"
 )
 
@@ -14,6 +15,21 @@ const (
 	VoteStatusError    VoteStatus = "error"
 )
 
+func ToStringStatus(status VoteStatus) string {
+	switch status {
+	case VoteStatusPending:
+		return "pending"
+	case VoteStatuConfirmed:
+		return "confirmed"
+	case VoteStatusRejected:
+		return "rejected"
+	case VoteStatusError:
+		return "error"
+	default:
+		return "unknown"
+	}
+}
+
 type Vote struct {
 	BaseModel
 	ID              uuid.UUID  `db:"id"`
@@ -25,11 +41,19 @@ type Vote struct {
 	Region          string     `db:"region"`
 }
 
-type Voter struct {
-	BaseModel
-	ID      uuid.UUID `db:"id"`
-	KTP     string    `db:"ktp"`
-	Name    string    `db:"name"`
-	Address string    `db:"address"`
-	Region  string    `db:"region"`
+func ConstructCastVote(req *request.CastVoteRequest) *Vote {
+	vote := &Vote{
+		BaseModel: BaseModel{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		ID:             uuid.New(),
+		VoterID:        uuid.MustParse(req.VoterID),
+		ElectionPairID: uuid.MustParse(req.ElectionPairID),
+		VotedAt:        time.Now(),
+		Status:         VoteStatusPending,
+		Region:         req.Region,
+	}
+
+	return vote
 }

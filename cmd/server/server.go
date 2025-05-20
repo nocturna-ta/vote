@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/nocturna-ta/golib/database/sql"
 	"github.com/nocturna-ta/golib/log"
 	"github.com/nocturna-ta/vote/config"
 	"github.com/nocturna-ta/vote/internal/handler/api"
+	"github.com/nocturna-ta/vote/internal/infrastructures/ethereum"
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
@@ -30,13 +31,26 @@ func run(cmd *cobra.Command, args []string) error {
 	cfg := &config.MainConfig{}
 	config.ReadConfig(cfg, configLocation)
 
-	client, err := ethclient.Dial(cfg.Blockchain.GanacheURL)
+	database := sql.New(sql.DBConfig{
+		SlaveDSN:        cfg.Database.SlaveDSN,
+		MasterDSN:       cfg.Database.MasterDSN,
+		RetryInterval:   cfg.Database.RetryInterval,
+		MaxIdleConn:     cfg.Database.MaxIdleConn,
+		MaxConn:         cfg.Database.MaxConn,
+		ConnMaxLifetime: cfg.Database.ConnMaxLifetime,
+	}, sql.DriverPostgres)
+
+	client, err := ethereum.GetEthereumClient(&cfg.Blockchain)
 	if err != nil {
 		return err
 	}
+
+	defer client.Close()
+
 	appContainer := newContainer(&options{
 		Cfg:    cfg,
 		Client: client,
+		DB:     database,
 	})
 
 	server := api.New(&api.Options{

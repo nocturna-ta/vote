@@ -15,6 +15,7 @@ import (
 	"github.com/nocturna-ta/golib/txmanager/utils"
 	"github.com/nocturna-ta/vote/internal/domain/model"
 	"github.com/nocturna-ta/vote/internal/domain/repository"
+	utils2 "github.com/nocturna-ta/vote/pkg/utils"
 	"github.com/nocturna-ta/votechain-contract/binding/electionManager"
 	"github.com/nocturna-ta/votechain-contract/interfaces"
 	"time"
@@ -48,8 +49,8 @@ func NewVoteRepository(opts *OptsVoteRepository) (repository.VoteRepository, err
 }
 
 const (
-	insertVoteQuery = `INSERT INTO votes (id, election_pair_id, voted_at, status, transaction_hash,
-    region, created_at, updated_at, is_deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	insertVoteQuery = `INSERT INTO votes (id, voter_id, election_pair_id, voted_at, status, transaction_hash,
+    region, created_at, updated_at, is_deleted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	selectVoteQuery       = `SELECT %s FROM votes %s WHERE TRUE %s`
 	updateVoteStatusQuery = `UPDATE votes SET %s WHERE TRUE %s`
 )
@@ -63,10 +64,10 @@ func (v *VoteRepository) InsertVote(ctx context.Context, vote *model.Vote) error
 	sqlTrx := utils.GetSqlTx(ctx)
 
 	if sqlTrx != nil {
-		_, err = sqlTrx.ExecContext(ctx, insertVoteQuery, vote.ID, vote.ElectionPairID, vote.VotedAt,
+		_, err = sqlTrx.ExecContext(ctx, insertVoteQuery, vote.ID, vote.VoterID, vote.ElectionPairID, vote.VotedAt,
 			vote.Status, vote.TransactionHash, vote.Region, vote.CreatedAt, vote.UpdatedAt, vote.IsDeleted)
 	} else {
-		_, err = v.db.GetMaster().ExecContext(ctx, insertVoteQuery, vote.ID, vote.ElectionPairID, vote.VotedAt,
+		_, err = v.db.GetMaster().ExecContext(ctx, insertVoteQuery, vote.ID, vote.VoterID, vote.ElectionPairID, vote.VotedAt,
 			vote.Status, vote.TransactionHash, vote.Region, vote.CreatedAt, vote.UpdatedAt, vote.IsDeleted)
 	}
 
@@ -90,6 +91,30 @@ func (v *VoteRepository) InsertVote(ctx context.Context, vote *model.Vote) error
 	}
 
 	return nil
+}
+
+func (v *VoteRepository) InsertVoteBlockchain(ctx context.Context, signedTransaction string) (string, error) {
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.InsertVoteBlockchain")
+	defer span.End()
+
+	tx, err := utils2.StringToTx(signedTransaction)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).ErrorWithCtx(ctx, "[VoteRepository.InsertVoteBlockchain] Failed to convert signed transaction")
+		return "", err
+	}
+
+	txHash, err := v.client.SendTransaction(ctx, tx)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"tx":    tx,
+		}).ErrorWithCtx(ctx, "[VoteRepository.InsertVoteBlockchain] Failed to send transaction")
+		return "", err
+	}
+
+	return txHash, nil
 }
 
 func (v *VoteRepository) GetVoteByID(ctx context.Context, id uuid.UUID) (*model.Vote, error) {
@@ -223,39 +248,7 @@ func (v *VoteRepository) UpdateVoteStatus(ctx context.Context, id uuid.UUID, sta
 
 	return nil
 }
-
-func (v *VoteRepository) HasVoted(ctx context.Context, voterID uuid.UUID) (bool, error) {
-	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.HasVoted")
-	defer span.End()
-
-	sqlTrx := utils.GetSqlTx(ctx)
-	var (
-		count int
-		err   error
-		args  []any
-	)
-
-	selectQuery := `COUNT(*)`
-
-	whereQuery := `AND voter_id = $1 AND is_deleted = false`
-
-	joinQuery := ``
-
-	args = append(args, voterID)
-	query := fmt.Sprintf(selectVoteQuery, selectQuery, joinQuery, whereQuery)
-	if sqlTrx != nil {
-		err = sqlTrx.GetContext(ctx, &count, query, args...)
-	} else {
-		err = v.db.GetMaster().GetContext(ctx, &count, query, args...)
-	}
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"voterID": voterID,
-		}).ErrorWithCtx(ctx, "[VoteRepository.HasVoted] Failed to get vote count")
-		return false, err
-	}
-
-	return count > 0, nil
-
+func (v *VoteRepository) UpdateVote(ctx context.Context, vote *model.Vote) error {
+	//TODO implement me
+	panic("implement me")
 }

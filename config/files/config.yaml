@@ -51,11 +51,11 @@ Encryption:
 
 BlockchainConfig:
   GanacheURL: "http://127.0.0.1:7545"
-  VotechainAddress: "0xD0a044326dcA9855042b901F5f2EF4f8D134BD25"
-  ElectionManagerAddress: "0xeEfDe01C1b43c8A00DeB24D1aEc32E69B4c78A79"
-  KPUManagerAddress: "0xc00BE030427ee6e2674BaB3f129563F28f19ddab"
-  VoterManagerAddress: "0x00287481B9eceB75ab1201C973972f9dE16671cD"
-  VotechainBaseAddress: "0x71a1C606cB303Be9399535Aabf8d135cCFa21766"
+  VotechainAddress: "0x9942546a784daFADD13549b2937156307577D38c"
+  ElectionManagerAddress: "0xD3c14E5de1Fa4Dd1A3662B2F6fCf6c9b6bce248F"
+  KPUManagerAddress: "0xac10688B8C5ed19007CC6c1296E8155C3630db94"
+  VoterManagerAddress: "0xac10688B8C5ed19007CC6c1296E8155C3630db94"
+  VotechainBaseAddress: "0xBcDc1f66f7C4adEE4980567a29ba3687a7FCB294"
 
 
 Cors:

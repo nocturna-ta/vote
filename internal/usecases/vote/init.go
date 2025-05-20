@@ -1,34 +1,32 @@
 package vote
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/nocturna-ta/golib/event"
+	"github.com/nocturna-ta/golib/txmanager"
+	"github.com/nocturna-ta/vote/config"
 	"github.com/nocturna-ta/vote/internal/domain/repository"
 	"github.com/nocturna-ta/vote/internal/usecases"
-	"github.com/nocturna-ta/vote/pkg/binding"
 )
 
 type Module struct {
-	voteRepo     repository.VoteRepository
-	ethConn      *ethclient.Client
-	contractAddr binding.Votechain
+	voteRepo  repository.VoteRepository
+	txMgr     txmanager.TxManager
+	publisher event.MessagePublisher
+	topics    config.KafkaTopics
 }
 
 type Opts struct {
-	VoteRepo     repository.VoteRepository
-	EthConn      *ethclient.Client
-	ContractAddr common.Address
+	VoteRepo  repository.VoteRepository
+	TxMgr     txmanager.TxManager
+	Publisher event.MessagePublisher
+	Topics    config.KafkaTopics
 }
 
 func New(opts *Opts) usecases.VoteUseCases {
-	contract, err := binding.NewVotechain(opts.ContractAddr, opts.EthConn)
-	if err != nil {
-		return nil
-	}
-
 	return &Module{
-		voteRepo:     opts.VoteRepo,
-		ethConn:      opts.EthConn,
-		contractAddr: contract,
+		voteRepo:  opts.VoteRepo,
+		txMgr:     opts.TxMgr,
+		publisher: opts.Publisher,
+		topics:    opts.Topics,
 	}
 }

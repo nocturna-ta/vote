@@ -2,10 +2,10 @@ package usecases
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"github.com/nocturna-ta/vote/internal/usecases/request"
+	"github.com/nocturna-ta/vote/internal/usecases/response"
 )
 
 type VoteUseCases interface {
-	CastVote(ctx context.Context, ktp string, candidateID uuid.UUID) error
-	GetVoteStatus(ctx context.Context, voterID uuid.UUID)
+	CastVote(ctx context.Context, req *request.CastVoteRequest) (*response.CastVoterResponse, error)
 }
