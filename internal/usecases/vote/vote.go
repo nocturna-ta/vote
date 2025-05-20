@@ -3,13 +3,16 @@ package vote
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/nocturna-ta/golib/custerr"
+	"github.com/nocturna-ta/golib/log"
 	response2 "github.com/nocturna-ta/golib/response"
 	"github.com/nocturna-ta/golib/tracing"
 	"github.com/nocturna-ta/vote/internal/domain/model"
 	"github.com/nocturna-ta/vote/internal/interfaces/dao"
 	"github.com/nocturna-ta/vote/internal/usecases/request"
 	"github.com/nocturna-ta/vote/internal/usecases/response"
+	"github.com/nocturna-ta/vote/pkg/constants"
 )
 
 func (m *Module) CastVote(ctx context.Context, req *request.CastVoteRequest) (*response.CastVoterResponse, error) {
@@ -17,8 +20,7 @@ func (m *Module) CastVote(ctx context.Context, req *request.CastVoteRequest) (*r
 	defer span.End()
 
 	var (
-		vote   *model.Vote
-		txHash string
+		vote *model.Vote
 	)
 
 	transaction := func(txCtx context.Context) (any, error) {
@@ -34,29 +36,68 @@ func (m *Module) CastVote(ctx context.Context, req *request.CastVoteRequest) (*r
 					Type:    response2.ErrInternalServerError,
 				}
 			}
-		}
-
-		txHash, errTx = m.voteRepo.InsertVoteBlockchain(txCtx, req.SignedTransaction)
-		if errTx != nil {
 			return nil, errTx
 		}
-		// example publish event
-		//errTx = m.publisher.Publish(txCtx, m.topics.MasterDataParty.Value, updatedParty.ID.String(), updatedParty.ToMessageModel(), map[string]any{
-		//	constants.MetaDataOperation: constants.Update,
-		//})
 
-		return nil, nil
+		return vote, nil
 	}
 
-	_, err := m.txMgr.Execute(ctx, transaction, nil)
+	result, err := m.txMgr.Execute(ctx, transaction, nil)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error":      err,
+			"request_id": ctx.Value("request_id"),
+			"voter_id":   req.VoterID,
+		}).ErrorWithCtx(ctx, "[CastVote] Failed to create vote")
 		return nil, err
+	}
+
+	vote = result.(*model.Vote)
+
+	voteMessage := vote.ToSubmitMessageModel(req.SignedTransaction)
+
+	err = m.publisher.Publish(ctx, m.topics.VoteSubmitData.Value, vote.ID.String(), voteMessage, map[string]any{
+		constants.MetaDataOperation: constants.Create,
+	})
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":    err,
+			"vote_id":  vote.ID,
+			"voter_id": req.VoterID,
+		}).ErrorWithCtx(ctx, "[CastVote] Failed to publish vote message")
 	}
 
 	return &response.CastVoterResponse{
 		ID:      vote.ID.String(),
 		VotedAt: vote.VotedAt.String(),
 		Status:  model.ToStringStatus(model.VoteStatuConfirmed),
-		TxHash:  txHash,
+	}, nil
+}
+
+func (m *Module) GetVoteStatus(ctx context.Context, voteID uuid.UUID) (*response.VoteStatusResponse, error) {
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteUseCases.GetVoteStatus")
+	defer span.End()
+
+	vote, err := m.voteRepo.GetVoteByID(ctx, voteID)
+	if err != nil {
+		if errors.Is(err, dao.ErrNoResult) {
+			return nil, &custerr.ErrChain{
+				Message: "vote not found",
+				Cause:   err,
+				Code:    404,
+				Type:    response2.ErrNotFound,
+			}
+		}
+		return nil, err
+	}
+
+	return &response.VoteStatusResponse{
+		ID:           vote.ID.String(),
+		Status:       model.ToStringStatus(vote.Status),
+		TxHash:       vote.TransactionHash,
+		VotedAt:      vote.VotedAt.String(),
+		ProcessedAt:  vote.ProcessedAt,
+		ErrorMessage: vote.ErrorMessage,
 	}, nil
 }

@@ -58,10 +58,7 @@ type (
 	}
 
 	KafkaTopics struct {
-		MasterDataUser        KafkaTopicConfig `yaml:"MasterDataUser"`
-		MasterDataVoter       KafkaTopicConfig `yaml:"MasterDataVoter"`
-		MasterDataKPUProvinsi KafkaTopicConfig `yaml:"MasterDataKpuProvinsi"`
-		MasterDataKPUKota     KafkaTopicConfig `yaml:"MasterDataKpuKota"`
+		VoteSubmitData KafkaTopicConfig `yaml:"VoteSubmitData"`
 	}
 	GrpcServerConfig struct {
 		Port uint `yaml:"Port"`

@@ -23,22 +23,11 @@ Kafka:
     MaxAttempt: 5
     Idempotent: true
   Topics:
-    MasterDataUser:
-      Value: "ums.masterdata-users"
+    VoteSubmitData:
+      Value: "votes.submit"
       ErrorHandler: "Phase1"
       WithBackOff: true
-    MasterDataVoter:
-      Value: "ums.masterdata-voters"
-      ErrorHandler: "Phase1"
-      WithBackOff: true
-    MasterDataKpuKota:
-      Value: "ums.masterdata-kpu-kota"
-      ErrorHandler: "Phase1"
-      WithBackOff: true
-    MasterDataKpuProvinsi:
-      Value: "ums.masterdata-kpu-provinsi"
-      ErrorHandler: "Phase1"
-      WithBackOff: true
+
 
 JWT:
   Secret: "^87adb2&91hnGaWd7"

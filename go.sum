@@ -182,6 +182,8 @@ github.com/newrelic/go-agent/v3 v3.35.0 h1:YIG6mhwzIEBaaG3YmxPHgBfBFmHNoChxbKYH5
 github.com/newrelic/go-agent/v3 v3.35.0/go.mod h1:GNTda53CohAhkgsc7/gqSsJhDZjj8vaky5u+vKz7wqM=
 github.com/newrelic/go-agent/v3/integrations/nrmysql v1.2.2 h1:JtaJdL4y1hj5mH0JA2XIIIZtOsivsCmG0wsp3cGtoNo=
 github.com/newrelic/go-agent/v3/integrations/nrmysql v1.2.2/go.mod h1:0JZ1gqlaBi9FUrQsg9LLZR357oDH4fGYYTbQQPhOd8o=
+github.com/nocturna-ta/common-model v1.7.0 h1:bR1HXfQ40Y15X4TJSR/G+2O08HfBBQnSQy1P3aJlptY=
+github.com/nocturna-ta/common-model v1.7.0/go.mod h1:ri/K6cjFoDwvTB0y6YVSE9vWpp1RPMOOenfLj+2qVPY=
 github.com/nocturna-ta/golib v1.1.10 h1:b8rKtKlMBb7Lhps0SjN49drn5Jq1/2mkDHTBwrJWLEg=
 github.com/nocturna-ta/golib v1.1.10/go.mod h1:TKfb0VniLlMyXcxzzL1D36TwJteW/vREl4RBi5R9wpw=
 github.com/nocturna-ta/votechain-contract v1.2.6 h1:WN9rKGP1Otu3DepRrDuNnrUCrKP9VjveIg6YO23FIMk=

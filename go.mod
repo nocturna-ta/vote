@@ -54,6 +54,7 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/newrelic/go-agent/v3 v3.35.0 // indirect
 	github.com/newrelic/go-agent/v3/integrations/nrmysql v1.2.2 // indirect
+	github.com/nocturna-ta/common-model v1.7.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
