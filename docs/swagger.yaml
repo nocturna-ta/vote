@@ -39,6 +39,21 @@ definitions:
       voted_at:
         type: string
     type: object
+  response.VoteStatusResponse:
+    properties:
+      error_message:
+        type: string
+      id:
+        type: string
+      processed_at:
+        type: string
+      status:
+        type: string
+      tx_hash:
+        type: string
+      voted_at:
+        type: string
+    type: object
 info:
   contact: {}
   description: Voting Service.
@@ -78,6 +93,44 @@ paths:
       summary: Ping
       tags:
       - Health
+  /v1/vote/{id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get vote status
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address-Id
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Vote ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.VoteStatusResponse'
+              type: object
+      summary: Get vote status
+      tags:
+      - Vote
   /v1/vote/cast:
     post:
       consumes:

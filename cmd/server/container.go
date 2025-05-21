@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/nocturna-ta/golib/database/sql"
 	"github.com/nocturna-ta/golib/ethereum"
+	"github.com/nocturna-ta/golib/event"
 	"github.com/nocturna-ta/golib/txmanager"
 	txSql "github.com/nocturna-ta/golib/txmanager/sql"
 	"github.com/nocturna-ta/vote/config"
@@ -20,13 +21,14 @@ type container struct {
 }
 
 type options struct {
-	Cfg    *config.MainConfig
-	DB     *sql.Store
-	Client ethereum.Client
+	Cfg       *config.MainConfig
+	DB        *sql.Store
+	Client    ethereum.Client
+	Publisher event.MessagePublisher
 }
 
 func newContainer(opts *options) *container {
-	voteRepo, err := dao.NewVoteRepository(&dao.OptsVoteRepository{
+	voteRepo := dao.NewVoteRepository(&dao.OptsVoteRepository{
 		Client:          opts.Client,
 		ContractAddress: common.HexToAddress(opts.Cfg.Blockchain.ElectionManagerAddress),
 		DB:              opts.DB,
@@ -43,8 +45,10 @@ func newContainer(opts *options) *container {
 	}
 
 	voteUc := vote.New(&vote.Opts{
-		VoteRepo: voteRepo,
-		TxMgr:    txMgr,
+		VoteRepo:  voteRepo,
+		TxMgr:     txMgr,
+		Publisher: opts.Publisher,
+		Topics:    opts.Cfg.Kafka.Topics,
 	})
 	return &container{
 		Cfg:    *opts.Cfg,

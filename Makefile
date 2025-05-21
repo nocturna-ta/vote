@@ -10,6 +10,9 @@ run-api: dependency swag-init
 	@echo ">> Running API Server"
 	@go run main.go server-http
 
+run-consumer: dependency swag-init
+	@echo ">> Running Kafka Consumer"
+	@go run main.go run-consumer
 
 migrate-up:
 	@echo ">> Running Migrate Up"

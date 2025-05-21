@@ -34,18 +34,18 @@ type OptsVoteRepository struct {
 	DB              *sql.Store
 }
 
-func NewVoteRepository(opts *OptsVoteRepository) (repository.VoteRepository, error) {
+func NewVoteRepository(opts *OptsVoteRepository) repository.VoteRepository {
 	var contractInterface interfaces.ElectionManagerInterface
 	contract, err := electionManager.NewElectionManager(opts.ContractAddress, opts.Client.GetEthClient())
 	if err != nil {
-		return nil, err
+		return nil
 	}
 	contractInterface = contract
 	return &VoteRepository{
 		client:   opts.Client,
 		contract: contractInterface,
 		db:       opts.DB,
-	}, nil
+	}
 }
 
 const (
@@ -249,6 +249,136 @@ func (v *VoteRepository) UpdateVoteStatus(ctx context.Context, id uuid.UUID, sta
 	return nil
 }
 func (v *VoteRepository) UpdateVote(ctx context.Context, vote *model.Vote) error {
-	//TODO implement me
-	panic("implement me")
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.UpdateVote")
+	defer span.End()
+
+	sqlTrx := utils.GetSqlTx(ctx)
+
+	var (
+		err    error
+		args   []any
+		result sql2.Result
+	)
+
+	setQuery := `status = $1, transaction_hash = $2, error_message = $3, retry_count = $4, processed_at = $5, updated_at = $6`
+	whereQuery := `AND id = $7 AND is_deleted = false`
+	args = append(args, vote.Status, vote.TransactionHash, vote.ErrorMessage, vote.RetryCount, vote.ProcessedAt, time.Now(), vote.ID)
+	query := fmt.Sprintf(updateVoteStatusQuery, setQuery, whereQuery)
+
+	if sqlTrx != nil {
+		result, err = sqlTrx.ExecContext(ctx, query, args...)
+	} else {
+		result, err = v.db.GetMaster().ExecContext(ctx, query, args...)
+	}
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"vote":  vote,
+		}).ErrorWithCtx(ctx, "[VoteRepository.UpdateVote] Failed to update vote")
+		return err
+	}
+
+	rowAffected, err := result.RowsAffected()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"vote":  vote,
+		}).ErrorWithCtx(ctx, "[VoteRepository.UpdateVote] Failed to get rows affected")
+		return err
+	}
+
+	if rowAffected == 0 {
+		return ErrNoUpdateHappened
+	}
+
+	return nil
+}
+
+func (v *VoteRepository) GetPendingVotes(ctx context.Context, limit, offset int) ([]*model.Vote, error) {
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.GetPendingVotes")
+	defer span.End()
+
+	var (
+		err   error
+		votes []*model.Vote
+		args  []any
+	)
+
+	sqlTrx := utils.GetSqlTx(ctx)
+
+	selectQuery := `id, voter_id, election_pair_id, voted_at, status, transaction_hash, region, error_message, retry_count, processed_at, created_at, updated_at, is_deleted`
+	whereQuery := ` AND status IN ($1, $2) AND is_deleted = false ORDER BY created_at ASC LIMIT $3 OFFSET $4`
+	args = append(args, model.VoteStatusQueued, model.VoteStatusRetrying, limit, offset)
+
+	query := fmt.Sprintf(selectVoteQuery, selectQuery, "", whereQuery)
+
+	if sqlTrx != nil {
+		err = sqlTrx.SelectContext(ctx, &votes, query, args...)
+	} else {
+		err = v.db.GetMaster().SelectContext(ctx, &votes, query, args...)
+	}
+
+	if err != nil {
+		if errors.Is(err, sql2.ErrNoRows) {
+			log.WithFields(log.Fields{
+				"error":  err,
+				"limit":  limit,
+				"offset": offset,
+			}).ErrorWithCtx(ctx, "[VoteRepository.GetPendingVotes] No pending votes found")
+			return nil, ErrNoResult
+		}
+		log.WithFields(log.Fields{
+			"error":  err,
+			"limit":  limit,
+			"offset": offset,
+		}).ErrorWithCtx(ctx, "[VoteRepository.GetPendingVotes] Failed to get pending votes")
+		return nil, err
+	}
+
+	return votes, nil
+}
+
+func (v *VoteRepository) GetFailedVotes(ctx context.Context, limit, offset int) ([]*model.Vote, error) {
+	span, ctx := tracing.StartSpanFromContext(ctx, "VoteRepository.GetFailedVotes")
+	defer span.End()
+
+	var (
+		err   error
+		votes []*model.Vote
+		args  []any
+	)
+
+	sqlTrx := utils.GetSqlTx(ctx)
+
+	selectQuery := `id, voter_id, election_pair_id, voted_at, status, transaction_hash, region, error_message, retry_count, processed_at, created_at, updated_at, is_deleted`
+	whereQuery := ` AND status = ? AND is_deleted = false ORDER BY created_at ASC LIMIT ? OFFSET ?`
+	args = append(args, model.VoteStatusError, limit, offset)
+
+	query := fmt.Sprintf(selectVoteQuery, selectQuery, "", whereQuery)
+
+	if sqlTrx != nil {
+		err = sqlTrx.SelectContext(ctx, &votes, query, args...)
+	} else {
+		err = v.db.GetMaster().SelectContext(ctx, &votes, query, args...)
+	}
+
+	if err != nil {
+		if errors.Is(err, sql2.ErrNoRows) {
+			log.WithFields(log.Fields{
+				"error":  err,
+				"limit":  limit,
+				"offset": offset,
+			}).ErrorWithCtx(ctx, "[VoteRepository.GetFailedVotes] No failed votes found")
+			return nil, ErrNoResult
+		}
+		log.WithFields(log.Fields{
+			"error":  err,
+			"limit":  limit,
+			"offset": offset,
+		}).ErrorWithCtx(ctx, "[VoteRepository.GetFailedVotes] Failed to get failed votes")
+		return nil, err
+	}
+
+	return votes, nil
 }

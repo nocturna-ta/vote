@@ -13,4 +13,6 @@ type VoteRepository interface {
 	GetVoteByElectionPairID(ctx context.Context, electionPairID uuid.UUID) (*model.Vote, error)
 	UpdateVoteStatus(ctx context.Context, id uuid.UUID, status model.VoteStatus) error
 	UpdateVote(ctx context.Context, vote *model.Vote) error
+	GetPendingVotes(ctx context.Context, limit, offset int) ([]*model.Vote, error)
+	GetFailedVotes(ctx context.Context, limit, offset int) ([]*model.Vote, error)
 }

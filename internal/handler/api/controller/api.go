@@ -66,6 +66,7 @@ func (api *API) RegisterRoute() *router.FastRouter {
 	myRouter.Group("/v1", func(v1 *router.FastRouter) {
 		v1.Group("/vote", func(vote *router.FastRouter) {
 			vote.POST("/cast", api.CastVote, router.MustAuthorized(false))
+			vote.GET("/:id/status", api.GetVoteStatus, router.MustAuthorized(false))
 		})
 	})
 	return myRouter
