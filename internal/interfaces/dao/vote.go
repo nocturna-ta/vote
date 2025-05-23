@@ -13,6 +13,7 @@ import (
 	"github.com/nocturna-ta/golib/log"
 	"github.com/nocturna-ta/golib/tracing"
 	"github.com/nocturna-ta/golib/txmanager/utils"
+	"github.com/nocturna-ta/golib/utils/encryption"
 	"github.com/nocturna-ta/vote/internal/domain/model"
 	"github.com/nocturna-ta/vote/internal/domain/repository"
 	utils2 "github.com/nocturna-ta/vote/pkg/utils"
@@ -22,9 +23,10 @@ import (
 )
 
 type VoteRepository struct {
-	client   ethereum.Client
-	contract interfaces.ElectionManagerInterface
-	db       *sql.Store
+	client    ethereum.Client
+	contract  interfaces.ElectionManagerInterface
+	db        *sql.Store
+	encryptor *encryption.Encryption
 }
 
 type OptsVoteRepository struct {
@@ -32,6 +34,7 @@ type OptsVoteRepository struct {
 	ContractAddress common.Address
 	Contract        interfaces.ElectionManagerInterface
 	DB              *sql.Store
+	Encryptor       *encryption.Encryption
 }
 
 func NewVoteRepository(opts *OptsVoteRepository) repository.VoteRepository {
@@ -42,9 +45,10 @@ func NewVoteRepository(opts *OptsVoteRepository) repository.VoteRepository {
 	}
 	contractInterface = contract
 	return &VoteRepository{
-		client:   opts.Client,
-		contract: contractInterface,
-		db:       opts.DB,
+		client:    opts.Client,
+		contract:  contractInterface,
+		db:        opts.DB,
+		encryptor: opts.Encryptor,
 	}
 }
 
@@ -61,13 +65,24 @@ func (v *VoteRepository) InsertVote(ctx context.Context, vote *model.Vote) error
 
 	var err error
 
+	if vote.EncryptedVoterID == "" && vote.VoterID != uuid.Nil {
+		err = vote.EncryptVoterID(v.encryptor)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+				"vote":  vote,
+			}).ErrorWithCtx(ctx, "[VoteRepository.InsertVote] Failed to encrypt voter ID")
+			return err
+		}
+	}
+
 	sqlTrx := utils.GetSqlTx(ctx)
 
 	if sqlTrx != nil {
-		_, err = sqlTrx.ExecContext(ctx, insertVoteQuery, vote.ID, vote.VoterID, vote.ElectionPairID, vote.VotedAt,
+		_, err = sqlTrx.ExecContext(ctx, insertVoteQuery, vote.ID, vote.EncryptedVoterID, vote.ElectionPairID, vote.VotedAt,
 			vote.Status, vote.TransactionHash, vote.Region, vote.CreatedAt, vote.UpdatedAt, vote.IsDeleted)
 	} else {
-		_, err = v.db.GetMaster().ExecContext(ctx, insertVoteQuery, vote.ID, vote.VoterID, vote.ElectionPairID, vote.VotedAt,
+		_, err = v.db.GetMaster().ExecContext(ctx, insertVoteQuery, vote.ID, vote.EncryptedVoterID, vote.ElectionPairID, vote.VotedAt,
 			vote.Status, vote.TransactionHash, vote.Region, vote.CreatedAt, vote.UpdatedAt, vote.IsDeleted)
 	}
 
@@ -128,7 +143,7 @@ func (v *VoteRepository) GetVoteByID(ctx context.Context, id uuid.UUID) (*model.
 		args []any
 	)
 
-	selectQuery := `id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
+	selectQuery := `id, voter_id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
 	whereClause := `AND id = $1 AND is_deleted = false`
 	joinQuery := ``
 	args = append(args, id)
@@ -156,6 +171,14 @@ func (v *VoteRepository) GetVoteByID(ctx context.Context, id uuid.UUID) (*model.
 		return nil, err
 	}
 
+	err = vote.DecryptVoterID(v.encryptor)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).ErrorWithCtx(ctx, "[VoteRepository.GetVoteByID] Failed to decrypt voter ID")
+		return nil, err
+	}
+
 	return &vote, nil
 }
 
@@ -170,7 +193,7 @@ func (v *VoteRepository) GetVoteByElectionPairID(ctx context.Context, electionPa
 		args []any
 	)
 
-	selectQuery := `id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
+	selectQuery := `id, voter_id, election_pair_id, voted_at, status, transaction_hash, region, created_at, updated_at, is_deleted`
 	whereClause := `AND election_pair_id = $1 AND is_deleted = false`
 	joinQuery := ``
 	args = append(args, electionPairID)
@@ -195,6 +218,14 @@ func (v *VoteRepository) GetVoteByElectionPairID(ctx context.Context, electionPa
 			"error": err,
 			"id":    electionPairID,
 		}).ErrorWithCtx(ctx, "[VoteRepository.GetVoteByElectionPairID] Failed to get vote by election pair ID")
+		return nil, err
+	}
+
+	err = vote.DecryptVoterID(v.encryptor)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).ErrorWithCtx(ctx, "[VoteRepository.GetVoteByElectionPairID] Failed to decrypt voter ID")
 		return nil, err
 	}
 
@@ -336,6 +367,16 @@ func (v *VoteRepository) GetPendingVotes(ctx context.Context, limit, offset int)
 		return nil, err
 	}
 
+	for _, vote := range votes {
+		err = vote.DecryptVoterID(v.encryptor)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).ErrorWithCtx(ctx, "[VoteRepository.GetPendingVotes] Failed to decrypt voter ID")
+			return nil, err
+		}
+	}
+
 	return votes, nil
 }
 
@@ -378,6 +419,16 @@ func (v *VoteRepository) GetFailedVotes(ctx context.Context, limit, offset int) 
 			"offset": offset,
 		}).ErrorWithCtx(ctx, "[VoteRepository.GetFailedVotes] Failed to get failed votes")
 		return nil, err
+	}
+
+	for _, vote := range votes {
+		err = vote.DecryptVoterID(v.encryptor)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error": err,
+			}).ErrorWithCtx(ctx, "[VoteRepository.GetVoteByID] Failed to decrypt voter ID")
+			return nil, err
+		}
 	}
 
 	return votes, nil

@@ -24,7 +24,15 @@ func (m *Module) CastVote(ctx context.Context, req *request.CastVoteRequest) (*r
 	)
 
 	transaction := func(txCtx context.Context) (any, error) {
-		vote = model.ConstructCastVote(req)
+		vote, err := model.ConstructCastVote(req, m.encryptor)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"error":      err,
+				"request_id": ctx.Value("request_id"),
+				"voter_id":   req.VoterID,
+			}).ErrorWithCtx(ctx, "[CastVote] Failed to construct vote with encryption")
+			return nil, err
+		}
 
 		errTx := m.voteRepo.InsertVote(txCtx, vote)
 		if errTx != nil {

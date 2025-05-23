@@ -6,6 +6,8 @@ import (
 	"github.com/nocturna-ta/golib/ethereum"
 	"github.com/nocturna-ta/golib/event"
 	"github.com/nocturna-ta/golib/event/handler"
+	"github.com/nocturna-ta/golib/log"
+	"github.com/nocturna-ta/golib/utils/encryption"
 	"github.com/nocturna-ta/vote/config"
 	"github.com/nocturna-ta/vote/internal/interfaces/dao"
 	"github.com/nocturna-ta/vote/internal/usecases"
@@ -26,10 +28,16 @@ type options struct {
 }
 
 func newContainer(opts *options) *container {
+	encryptor, err := encryption.NewEncryption(opts.Cfg.Encryption.Key)
+	if err != nil {
+		log.Fatal("failed to create encryption: %v", err)
+	}
+
 	voteRepo := dao.NewVoteRepository(&dao.OptsVoteRepository{
 		Client:          opts.Client,
 		ContractAddress: common.HexToAddress(opts.Cfg.Blockchain.ElectionManagerAddress),
 		DB:              opts.DB,
+		Encryptor:       encryptor,
 	})
 
 	consumerUc := consumer.New(&consumer.Options{

@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/google/uuid"
 	"github.com/nocturna-ta/common-model/models/event"
+	"github.com/nocturna-ta/golib/utils/encryption"
 	"github.com/nocturna-ta/vote/internal/usecases/request"
 	"time"
 )
@@ -39,33 +40,76 @@ func ToStringStatus(status VoteStatus) string {
 
 type Vote struct {
 	BaseModel
-	ID              uuid.UUID  `db:"id"`
-	VoterID         uuid.UUID  `db:"voter_id"`
-	ElectionPairID  uuid.UUID  `db:"election_pair_id"`
-	VotedAt         time.Time  `db:"voted_at"`
-	Status          VoteStatus `db:"status"`
-	TransactionHash string     `db:"transaction_hash"`
-	Region          string     `db:"region"`
-	ErrorMessage    string     `db:"error_message"`
-	RetryCount      int        `db:"retry_count"`
-	ProcessedAt     *time.Time `db:"processed_at"`
+	ID               uuid.UUID  `db:"id"`
+	VoterID          uuid.UUID  `db:"-"`
+	EncryptedVoterID string     `db:"voter_id"`
+	ElectionPairID   uuid.UUID  `db:"election_pair_id"`
+	VotedAt          time.Time  `db:"voted_at"`
+	Status           VoteStatus `db:"status"`
+	TransactionHash  string     `db:"transaction_hash"`
+	Region           string     `db:"region"`
+	ErrorMessage     string     `db:"error_message"`
+	RetryCount       int        `db:"retry_count"`
+	ProcessedAt      *time.Time `db:"processed_at"`
 }
 
-func ConstructCastVote(req *request.CastVoteRequest) *Vote {
+func (v *Vote) EncryptVoterID(encryptor *encryption.Encryption) error {
+	if v.VoterID == uuid.Nil {
+		return nil
+	}
+
+	encrypted, err := encryptor.Encrypt(v.VoterID.String())
+	if err != nil {
+		return err
+	}
+
+	v.EncryptedVoterID = encrypted
+	return nil
+}
+
+func (v *Vote) DecryptVoterID(encryptor *encryption.Encryption) error {
+	if v.EncryptedVoterID == "" {
+		return nil
+	}
+
+	decrypted, err := encryptor.Decrypt(v.EncryptedVoterID)
+	if err != nil {
+		return err
+	}
+
+	voterID, err := uuid.Parse(decrypted)
+	if err != nil {
+		return err
+	}
+
+	v.VoterID = voterID
+	return nil
+}
+
+func ConstructCastVote(req *request.CastVoteRequest, encryptor *encryption.Encryption) (*Vote, error) {
+	voterID, err := uuid.Parse(req.VoterID)
+	if err != nil {
+		return nil, err
+	}
 	vote := &Vote{
 		BaseModel: BaseModel{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
 		ID:             uuid.New(),
-		VoterID:        uuid.MustParse(req.VoterID),
+		VoterID:        voterID,
 		ElectionPairID: uuid.MustParse(req.ElectionPairID),
 		VotedAt:        time.Now(),
 		Status:         VoteStatusQueued,
 		Region:         req.Region,
 		RetryCount:     0,
 	}
-	return vote
+
+	err = vote.EncryptVoterID(encryptor)
+	if err != nil {
+		return nil, err
+	}
+	return vote, nil
 }
 
 func (v *Vote) ToSubmitMessageModel(signedTx string) *event.VoteSubmitMessage {
@@ -76,7 +120,7 @@ func (v *Vote) ToSubmitMessageModel(signedTx string) *event.VoteSubmitMessage {
 			IsDeleted: v.IsDeleted,
 		},
 		VoteID:            v.ID.String(),
-		VoterID:           v.VoterID.String(),
+		VoterID:           v.EncryptedVoterID,
 		ElectionPairID:    v.ElectionPairID.String(),
 		Region:            v.Region,
 		SignedTransaction: signedTx,
@@ -87,6 +131,7 @@ func (v *Vote) ToSubmitMessageModel(signedTx string) *event.VoteSubmitMessage {
 func (v *Vote) ToProcessedMessageModel(errorMsg string) *event.VoteProcessedMessage {
 	return &event.VoteProcessedMessage{
 		VoteID:          v.ID.String(),
+		VoterID:         v.EncryptedVoterID,
 		Status:          ToStringStatus(v.Status),
 		TransactionHash: v.TransactionHash,
 		ErrorMessage:    errorMsg,
