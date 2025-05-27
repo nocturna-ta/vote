@@ -1,0 +1,161 @@
+basePath: /
+definitions:
+  controller.errorResponse:
+    properties:
+      error_code:
+        type: integer
+      error_message:
+        type: string
+    type: object
+  controller.jsonResponse:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error:
+        $ref: '#/definitions/controller.errorResponse'
+      message:
+        type: string
+    type: object
+  request.CastVoteRequest:
+    properties:
+      election_pair_id:
+        type: string
+      region:
+        type: string
+      signed_transaction:
+        type: string
+      voter_id:
+        type: string
+    type: object
+  response.CastVoterResponse:
+    properties:
+      id:
+        type: string
+      status:
+        type: string
+      tx_hash:
+        type: string
+      voted_at:
+        type: string
+    type: object
+  response.VoteStatusResponse:
+    properties:
+      error_message:
+        type: string
+      id:
+        type: string
+      processed_at:
+        type: string
+      status:
+        type: string
+      tx_hash:
+        type: string
+      voted_at:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Voting Service.
+  title: Voting Service
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Ping to check health
+      parameters:
+      - description: user that make request
+        in: header
+        name: X-User-Id
+        type: string
+      - default: web
+        description: channel where request comes from
+        in: header
+        name: X-Channel-Id
+        type: string
+      - description: request unique identifier
+        in: header
+        name: X-Request-Id
+        type: string
+      - description: user account
+        in: header
+        name: X-Account-Id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.jsonResponse'
+      summary: Ping
+      tags:
+      - Health
+  /v1/vote/{id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get vote status
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address-Id
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Vote ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.VoteStatusResponse'
+              type: object
+      summary: Get vote status
+      tags:
+      - Vote
+  /v1/vote/cast:
+    post:
+      consumes:
+      - application/json
+      description: Cast a vote
+      parameters:
+      - description: Cast vote request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CastVoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CastVoterResponse'
+              type: object
+      summary: Cast a vote
+      tags:
+      - Vote
+swagger: "2.0"
