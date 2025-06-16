@@ -66,6 +66,409 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/election-time": {
+            "post": {
+                "description": "Create a new election time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Create Election Time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Create Election Time Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateElectionTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ElectionTimeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/election-time/status": {
+            "get": {
+                "description": "Get the current election status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Get Current Election Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ElectionStatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/election-time/sync": {
+            "post": {
+                "description": "Sync the statuses of all election times",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Sync Election Statuses",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.jsonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/election-time/{id}": {
+            "get": {
+                "description": "Get an election time by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Get Election Time by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Election Time ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ElectionTimeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing election time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Update Election Time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Election Time ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Election Time Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateElectionTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ElectionTimeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an existing election time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Delete Election Time",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Election Time ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.jsonResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/election-time/{id}/activate": {
+            "post": {
+                "description": "Manually activate an election time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ElectionTime"
+                ],
+                "summary": "Manually Activate Election",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorized User",
+                        "name": "X-User-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Address",
+                        "name": "X-Address",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorized Role",
+                        "name": "X-Role",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Election Time ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ElectionTimeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/vote/cast": {
             "post": {
                 "description": "Cast a vote",
@@ -219,6 +622,40 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateElectionTimeRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateElectionTimeRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "response.CastVoterResponse": {
             "type": "object",
             "properties": {
@@ -232,6 +669,61 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "voted_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ElectionStatusResponse": {
+            "type": "object",
+            "properties": {
+                "current_election": {
+                    "$ref": "#/definitions/response.ElectionTimeResponse"
+                },
+                "is_election_active": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "remaining_voting_time": {
+                    "type": "string"
+                },
+                "time_until_end": {
+                    "type": "integer"
+                },
+                "time_until_start": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ElectionTimeResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
