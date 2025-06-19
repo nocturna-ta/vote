@@ -3,10 +3,20 @@ import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 export function generateVoteData() {
     return {
         voter_id : uuidv4(),
-        election_pair_id: uuidv4(),
+        election_pair_id: getRandomElectionPairId() ,
         region : getRandomRegion(),
         signed_transaction: generateSignedTransaction(),
     }
+}
+
+export function getRandomElectionPairId() {
+    const ids = [
+        'c976902f-bb0b-4103-84f5-edd74e6e928f',
+        'a1234567-bb0b-4103-84f5-edd74e6e1234',
+        'b2345678-bb0b-4103-84f5-edd74e6e2345'
+    ]
+
+    return ids[Math.floor(Math.random() * ids.length)];
 }
 
 export function getRandomRegion() {
