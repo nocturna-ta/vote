@@ -28,6 +28,28 @@ definitions:
       voter_id:
         type: string
     type: object
+  request.CreateElectionTimeRequest:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+    type: object
+  request.UpdateElectionTimeRequest:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+      title:
+        type: string
+    type: object
   response.CastVoterResponse:
     properties:
       id:
@@ -37,6 +59,42 @@ definitions:
       tx_hash:
         type: string
       voted_at:
+        type: string
+    type: object
+  response.ElectionStatusResponse:
+    properties:
+      current_election:
+        $ref: '#/definitions/response.ElectionTimeResponse'
+      is_election_active:
+        type: boolean
+      message:
+        type: string
+      remaining_voting_time:
+        type: string
+      time_until_end:
+        type: integer
+      time_until_start:
+        type: integer
+    type: object
+  response.ElectionTimeResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      start_time:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
   response.VoteStatusResponse:
@@ -93,6 +151,257 @@ paths:
       summary: Ping
       tags:
       - Health
+  /v1/election-time:
+    post:
+      consumes:
+      - application/json
+      description: Create a new election time
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Create Election Time Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateElectionTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ElectionTimeResponse'
+              type: object
+      summary: Create Election Time
+      tags:
+      - ElectionTime
+  /v1/election-time/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing election time
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Election Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.jsonResponse'
+      summary: Delete Election Time
+      tags:
+      - ElectionTime
+    get:
+      consumes:
+      - application/json
+      description: Get an election time by its ID
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Election Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ElectionTimeResponse'
+              type: object
+      summary: Get Election Time by ID
+      tags:
+      - ElectionTime
+    put:
+      consumes:
+      - application/json
+      description: Update an existing election time
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Election Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Election Time Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateElectionTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ElectionTimeResponse'
+              type: object
+      summary: Update Election Time
+      tags:
+      - ElectionTime
+  /v1/election-time/{id}/activate:
+    post:
+      consumes:
+      - application/json
+      description: Manually activate an election time
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      - description: Election Time ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ElectionTimeResponse'
+              type: object
+      summary: Manually Activate Election
+      tags:
+      - ElectionTime
+  /v1/election-time/status:
+    get:
+      consumes:
+      - application/json
+      description: Get the current election status
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ElectionStatusResponse'
+              type: object
+      summary: Get Current Election Status
+      tags:
+      - ElectionTime
+  /v1/election-time/sync:
+    post:
+      consumes:
+      - application/json
+      description: Sync the statuses of all election times
+      parameters:
+      - description: Authorized User
+        in: header
+        name: X-User-Id
+        type: string
+      - description: Authorized Address
+        in: header
+        name: X-Address
+        type: string
+      - description: Authorized Role
+        in: header
+        name: X-Role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.jsonResponse'
+      summary: Sync Election Statuses
+      tags:
+      - ElectionTime
   /v1/vote/{id}/status:
     get:
       consumes:

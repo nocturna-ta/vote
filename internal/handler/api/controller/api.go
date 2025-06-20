@@ -18,6 +18,7 @@ type API struct {
 	requestTimeout time.Duration
 	enableSwagger  bool
 	voteUc         usecases.VoteUseCases
+	electionTimeUc usecases.ElectionTimeUseCases
 }
 
 type Options struct {
@@ -28,6 +29,7 @@ type Options struct {
 	RequestTimeout time.Duration
 	EnableSwagger  bool
 	VoteUc         usecases.VoteUseCases
+	ElectionTimeUc usecases.ElectionTimeUseCases
 }
 
 func New(opts *Options) *API {
@@ -39,6 +41,7 @@ func New(opts *Options) *API {
 		requestTimeout: opts.RequestTimeout,
 		enableSwagger:  opts.EnableSwagger,
 		voteUc:         opts.VoteUc,
+		electionTimeUc: opts.ElectionTimeUc,
 	}
 }
 
@@ -59,7 +62,7 @@ func (api *API) RegisterRoute() *router.FastRouter {
 			CustomStyle:  template.CSS(utils.ClaudeDarkTheme),
 		}
 
-		myRouter.CustomHandler("GET", "/docs/*", swagger.New(swaggerConfig), router.MustAuthorized(false))
+		myRouter.CustomHandler("GET", "/vote/docs/*", swagger.New(swaggerConfig), router.MustAuthorized(false))
 	}
 
 	myRouter.GET("/health", api.Ping, router.MustAuthorized(false))
@@ -67,6 +70,16 @@ func (api *API) RegisterRoute() *router.FastRouter {
 		v1.Group("/vote", func(vote *router.FastRouter) {
 			vote.POST("/cast", api.CastVote, router.MustAuthorized(false))
 			vote.GET("/:id/status", api.GetVoteStatus, router.MustAuthorized(false))
+		})
+		v1.Group("/election-time", func(electionTime *router.FastRouter) {
+			electionTime.GET("/status", api.GetElectionStatus, router.MustAuthorized(false))
+			electionTime.POST("/", api.CreateElectionTime, router.MustAuthorized(false))
+			electionTime.GET("/:id", api.GetElectionTimeByID, router.MustAuthorized(false))
+			electionTime.PUT("/:id", api.UpdateElectionTime, router.MustAuthorized(false))
+			electionTime.DELETE("/:id", api.DeleteElectionTime, router.MustAuthorized(false))
+			electionTime.POST("/:id/activate", api.ActivateElection, router.MustAuthorized(false))
+			electionTime.POST("/sync", api.SyncElectionStatuses, router.MustAuthorized(false))
+
 		})
 	})
 	return myRouter

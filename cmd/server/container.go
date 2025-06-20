@@ -12,13 +12,15 @@ import (
 	"github.com/nocturna-ta/vote/config"
 	"github.com/nocturna-ta/vote/internal/interfaces/dao"
 	"github.com/nocturna-ta/vote/internal/usecases"
+	"github.com/nocturna-ta/vote/internal/usecases/election_time"
 	"github.com/nocturna-ta/vote/internal/usecases/vote"
 	"log"
 )
 
 type container struct {
-	Cfg    config.MainConfig
-	VoteUc usecases.VoteUseCases
+	Cfg            config.MainConfig
+	VoteUc         usecases.VoteUseCases
+	ElectionTimeUc usecases.ElectionTimeUseCases
 }
 
 type options struct {
@@ -42,6 +44,10 @@ func newContainer(opts *options) *container {
 		Encryptor:       encryptor,
 	})
 
+	electionTimeRepo := dao.NewElectionTimeRepository(&dao.OptsElectionTimeRepository{
+		DB: opts.DB,
+	})
+
 	txMgr, err := txmanager.New(context.Background(), &txmanager.DriverConfig{
 		Type: "sql",
 		Config: txSql.Config{
@@ -59,8 +65,15 @@ func newContainer(opts *options) *container {
 		Topics:    opts.Cfg.Kafka.Topics,
 		Encryptor: encryptor,
 	})
+
+	electionTimeUc := election_time.New(&election_time.Opts{
+		ElectionTimeRepo: electionTimeRepo,
+		TxMgr:            txMgr,
+	})
+
 	return &container{
-		Cfg:    *opts.Cfg,
-		VoteUc: voteUc,
+		Cfg:            *opts.Cfg,
+		VoteUc:         voteUc,
+		ElectionTimeUc: electionTimeUc,
 	}
 }

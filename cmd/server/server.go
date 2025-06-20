@@ -8,10 +8,12 @@ import (
 	"github.com/nocturna-ta/vote/internal/handler/api"
 	"github.com/nocturna-ta/vote/internal/infrastructures/ethereum"
 	"github.com/nocturna-ta/vote/internal/infrastructures/kafka"
+	"github.com/nocturna-ta/vote/internal/scheduler"
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var (
@@ -62,20 +64,39 @@ func run(cmd *cobra.Command, args []string) error {
 		Publisher: publisher,
 	})
 
+	electionScheduler := scheduler.NewElectionSyncScheduler(appContainer.ElectionTimeUc)
+	electionScheduler.Start(1 * time.Minute)
+
+	log.Info("Performing initial election status sync...")
+	err = electionScheduler.SyncOnce()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Initial election sync failed, but continuing...")
+	}
+
 	server := api.New(&api.Options{
-		Cfg:    appContainer.Cfg,
-		VoteUc: appContainer.VoteUc,
+		Cfg:            appContainer.Cfg,
+		VoteUc:         appContainer.VoteUc,
+		ElectionTimeUc: appContainer.ElectionTimeUc,
 	})
 
 	go server.Run()
 
 	term := make(chan os.Signal)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
+
+	log.Info("Server started successfully. Press Ctrl+C to shutdown.")
+
 	select {
 	case <-term:
 		log.Info("Exiting gracefully...")
+		electionScheduler.Stop()
+		log.Info("Election sync scheduler stopped.")
 	case err := <-server.ListenError():
 		log.Error("Error starting web server, exiting gracefully:", err)
+
+		electionScheduler.Stop()
 	}
 
 	return nil

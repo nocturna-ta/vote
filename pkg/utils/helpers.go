@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/nocturna-ta/golib/router"
-	"github.com/nocturna-ta/vote/config"
+	"time"
 )
 
 func StringToTx(signedTx string) (*types.Transaction, error) {
@@ -16,13 +16,24 @@ func StringToTx(signedTx string) (*types.Transaction, error) {
 	return tx, nil
 }
 
-func ConvertToRouterCorsConfig(configCors *config.CorsConfig) *router.CorsConfig {
-	return &router.CorsConfig{
-		AllowOrigins:     configCors.AllowOrigins,
-		AllowMethods:     configCors.AllowMethods,
-		AllowHeaders:     configCors.AllowHeaders,
-		AllowCredentials: configCors.AllowCredentials,
-		ExposeHeaders:    configCors.ExposeHeaders,
-		MaxAge:           configCors.MaxAge,
+func FormatDuration(d time.Duration) string {
+	if d < time.Minute {
+		return fmt.Sprintf("%d seconds", int(d.Seconds()))
+	} else if d < time.Hour {
+		return fmt.Sprintf("%d minutes", int(d.Minutes()))
+	} else if d < 24*time.Hour {
+		hours := int(d.Hours())
+		minutes := int(d.Minutes()) % 60
+		if minutes == 0 {
+			return fmt.Sprintf("%d hours", hours)
+		}
+		return fmt.Sprintf("%d hours %d minutes", hours, minutes)
+	} else {
+		days := int(d.Hours()) / 24
+		hours := int(d.Hours()) % 24
+		if hours == 0 {
+			return fmt.Sprintf("%d days", days)
+		}
+		return fmt.Sprintf("%d days %d hours", days, hours)
 	}
 }

@@ -9,8 +9,9 @@ import (
 )
 
 type Options struct {
-	Cfg    config.MainConfig
-	VoteUc usecases.VoteUseCases
+	Cfg            config.MainConfig
+	VoteUc         usecases.VoteUseCases
+	ElectionTimeUc usecases.ElectionTimeUseCases
 }
 
 type Handler struct {
@@ -31,6 +32,7 @@ func New(opts *Options) *Handler {
 		RequestTimeout: opts.Cfg.API.APITimeout,
 		EnableSwagger:  opts.Cfg.API.EnableSwagger,
 		VoteUc:         opts.VoteUc,
+		ElectionTimeUc: opts.ElectionTimeUc,
 	}).RegisterRoute()
 	return handler
 }
