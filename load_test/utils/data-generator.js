@@ -11,9 +11,9 @@ export function generateVoteData() {
 
 export function getRandomElectionPairId() {
     const ids = [
-        'c976902f-bb0b-4103-84f5-edd74e6e928f',
-        'a1234567-bb0b-4103-84f5-edd74e6e1234',
-        'b2345678-bb0b-4103-84f5-edd74e6e2345'
+        'c3834ab2-7735-44b3-a4bc-7509c6c37d17',
+        'd17af195-440c-4132-8169-98472fa48bb4',
+        'e031d6aa-4a8d-40df-bcd8-764d9a4ba5f7'
     ]
 
     return ids[Math.floor(Math.random() * ids.length)];

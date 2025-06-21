@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/nocturna-ta/golib/cache"
+	"github.com/nocturna-ta/golib/cache/redlock"
 	"github.com/nocturna-ta/golib/database/sql"
 	"github.com/nocturna-ta/golib/ethereum"
 	"github.com/nocturna-ta/golib/event"
@@ -13,6 +15,7 @@ import (
 	"github.com/nocturna-ta/vote/internal/interfaces/dao"
 	"github.com/nocturna-ta/vote/internal/usecases"
 	"github.com/nocturna-ta/vote/internal/usecases/election_time"
+	"github.com/nocturna-ta/vote/internal/usecases/otp"
 	"github.com/nocturna-ta/vote/internal/usecases/vote"
 	"log"
 )
@@ -21,6 +24,7 @@ type container struct {
 	Cfg            config.MainConfig
 	VoteUc         usecases.VoteUseCases
 	ElectionTimeUc usecases.ElectionTimeUseCases
+	OtpUc          usecases.OTPUseCases
 }
 
 type options struct {
@@ -28,6 +32,8 @@ type options struct {
 	DB        *sql.Store
 	Client    ethereum.Client
 	Publisher event.MessagePublisher
+	RedLock   redlock.RedLock
+	Cache     cache.Cache
 }
 
 func newContainer(opts *options) *container {
@@ -58,12 +64,19 @@ func newContainer(opts *options) *container {
 		log.Fatal("Failed to instantiate transaction manager ")
 	}
 
+	otpUc := otp.New(&otp.Options{
+		Redis:     opts.Cache,
+		RedLock:   opts.RedLock,
+		OtpConfig: opts.Cfg.OTP,
+	})
+
 	voteUc := vote.New(&vote.Opts{
-		VoteRepo:  voteRepo,
-		TxMgr:     txMgr,
-		Publisher: opts.Publisher,
-		Topics:    opts.Cfg.Kafka.Topics,
-		Encryptor: encryptor,
+		VoteRepo:    voteRepo,
+		TxMgr:       txMgr,
+		Publisher:   opts.Publisher,
+		Topics:      opts.Cfg.Kafka.Topics,
+		Encryptor:   encryptor,
+		OTPUseCases: otpUc,
 	})
 
 	electionTimeUc := election_time.New(&election_time.Opts{
@@ -75,5 +88,6 @@ func newContainer(opts *options) *container {
 		Cfg:            *opts.Cfg,
 		VoteUc:         voteUc,
 		ElectionTimeUc: electionTimeUc,
+		OtpUc:          otpUc,
 	}
 }

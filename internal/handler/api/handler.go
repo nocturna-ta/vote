@@ -12,6 +12,7 @@ type Options struct {
 	Cfg            config.MainConfig
 	VoteUc         usecases.VoteUseCases
 	ElectionTimeUc usecases.ElectionTimeUseCases
+	OtpUc          usecases.OTPUseCases
 }
 
 type Handler struct {
@@ -33,6 +34,7 @@ func New(opts *Options) *Handler {
 		EnableSwagger:  opts.Cfg.API.EnableSwagger,
 		VoteUc:         opts.VoteUc,
 		ElectionTimeUc: opts.ElectionTimeUc,
+		OTPUc:          opts.OtpUc,
 	}).RegisterRoute()
 	return handler
 }

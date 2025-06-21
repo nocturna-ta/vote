@@ -21,6 +21,8 @@ definitions:
     properties:
       election_pair_id:
         type: string
+      otp_token:
+        type: string
       region:
         type: string
       signed_transaction:
@@ -39,6 +41,26 @@ definitions:
       title:
         type: string
     type: object
+  request.GenerateOTPRequest:
+    properties:
+      purpose:
+        type: string
+      voter_id:
+        type: string
+    required:
+    - purpose
+    - voter_id
+    type: object
+  request.ResendOTPRequest:
+    properties:
+      purpose:
+        type: string
+      voter_id:
+        type: string
+    required:
+    - purpose
+    - voter_id
+    type: object
   request.UpdateElectionTimeRequest:
     properties:
       description:
@@ -49,6 +71,19 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  request.VerifyOTPRequest:
+    properties:
+      code:
+        type: string
+      purpose:
+        type: string
+      voter_id:
+        type: string
+    required:
+    - code
+    - purpose
+    - voter_id
     type: object
   response.CastVoterResponse:
     properties:
@@ -95,6 +130,78 @@ definitions:
       title:
         type: string
       updated_at:
+        type: string
+    type: object
+  response.GenerateOTPResponse:
+    properties:
+      expires_at:
+        type: string
+      max_attempts:
+        type: integer
+      message:
+        type: string
+      purpose:
+        type: string
+      remaining_attempts:
+        type: integer
+      time_remaining_seconds:
+        type: string
+      voter_id:
+        type: string
+    type: object
+  response.OTPStatusResponse:
+    properties:
+      attempt_count:
+        type: integer
+      can_resend:
+        type: boolean
+      expires_at:
+        type: string
+      max_attempts:
+        type: integer
+      purpose:
+        type: string
+      remaining_attempts:
+        type: integer
+      status:
+        type: string
+      time_remaining_seconds:
+        type: string
+      voter_id:
+        type: string
+    type: object
+  response.ResendOTPResponse:
+    properties:
+      expires_at:
+        type: string
+      max_attempts:
+        type: integer
+      message:
+        type: string
+      purpose:
+        type: string
+      remaining_attempts:
+        type: integer
+      time_remaining_seconds:
+        type: string
+      voter_id:
+        type: string
+    type: object
+  response.VerifyOTPResponse:
+    properties:
+      is_valid:
+        type: boolean
+      message:
+        type: string
+      otp_token:
+        type: string
+      purpose:
+        type: string
+      token_expiry:
+        type: string
+      verified_at:
+        type: string
+      voter_id:
         type: string
     type: object
   response.VoteStatusResponse:
@@ -402,6 +509,118 @@ paths:
       summary: Sync Election Statuses
       tags:
       - ElectionTime
+  /v1/otp/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new OTP for the specified voter and purpose
+      parameters:
+      - description: Generate OTP request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GenerateOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GenerateOTPResponse'
+              type: object
+      summary: Generate OTP
+      tags:
+      - OTP
+  /v1/otp/resend:
+    post:
+      consumes:
+      - application/json
+      description: Resend OTP for the specified voter and purpose
+      parameters:
+      - description: Resend OTP request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ResendOTPResponse'
+              type: object
+      summary: Resend OTP
+      tags:
+      - OTP
+  /v1/otp/status:
+    get:
+      consumes:
+      - application/json
+      description: Get the current status of OTP for a voter and purpose
+      parameters:
+      - description: Voter ID
+        in: query
+        name: voter_id
+        required: true
+        type: string
+      - description: OTP Purpose
+        in: query
+        name: purpose
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OTPStatusResponse'
+              type: object
+      summary: Get OTP Status
+      tags:
+      - OTP
+  /v1/otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify the provided OTP code
+      parameters:
+      - description: Verify OTP request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.jsonResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.VerifyOTPResponse'
+              type: object
+      summary: Verify OTP
+      tags:
+      - OTP
   /v1/vote/{id}/status:
     get:
       consumes:

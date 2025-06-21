@@ -70,3 +70,5 @@ BlockchainConfig:
   VoterManagerAddress: "0x8c43Cea2fE39635De63893e45A072B8fD73a1be7"
   VotechainBaseAddress: "0xB1aDFD125A736f17Fc8914c993698934BA834B13"
 
+RedisConfig:
+  Connection: "redis://:@localhost:6379/vote:"

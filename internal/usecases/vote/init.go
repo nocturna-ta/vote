@@ -15,14 +15,16 @@ type Module struct {
 	publisher event.MessagePublisher
 	topics    config.KafkaTopics
 	encryptor *encryption.Encryption
+	otpUc     usecases.OTPUseCases
 }
 
 type Opts struct {
-	VoteRepo  repository.VoteRepository
-	TxMgr     txmanager.TxManager
-	Publisher event.MessagePublisher
-	Topics    config.KafkaTopics
-	Encryptor *encryption.Encryption
+	VoteRepo    repository.VoteRepository
+	TxMgr       txmanager.TxManager
+	Publisher   event.MessagePublisher
+	Topics      config.KafkaTopics
+	Encryptor   *encryption.Encryption
+	OTPUseCases usecases.OTPUseCases
 }
 
 func New(opts *Opts) usecases.VoteUseCases {
@@ -32,5 +34,6 @@ func New(opts *Opts) usecases.VoteUseCases {
 		publisher: opts.Publisher,
 		topics:    opts.Topics,
 		encryptor: opts.Encryptor,
+		otpUc:     opts.OTPUseCases,
 	}
 }

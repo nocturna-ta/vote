@@ -19,6 +19,7 @@ type API struct {
 	enableSwagger  bool
 	voteUc         usecases.VoteUseCases
 	electionTimeUc usecases.ElectionTimeUseCases
+	otpUc          usecases.OTPUseCases
 }
 
 type Options struct {
@@ -30,6 +31,7 @@ type Options struct {
 	EnableSwagger  bool
 	VoteUc         usecases.VoteUseCases
 	ElectionTimeUc usecases.ElectionTimeUseCases
+	OTPUc          usecases.OTPUseCases
 }
 
 func New(opts *Options) *API {
@@ -42,6 +44,7 @@ func New(opts *Options) *API {
 		enableSwagger:  opts.EnableSwagger,
 		voteUc:         opts.VoteUc,
 		electionTimeUc: opts.ElectionTimeUc,
+		otpUc:          opts.OTPUc,
 	}
 }
 
@@ -79,8 +82,14 @@ func (api *API) RegisterRoute() *router.FastRouter {
 			electionTime.DELETE("/:id", api.DeleteElectionTime, router.MustAuthorized(false))
 			electionTime.POST("/:id/activate", api.ActivateElection, router.MustAuthorized(false))
 			electionTime.POST("/sync", api.SyncElectionStatuses, router.MustAuthorized(false))
-
 		})
+		v1.Group("/otp", func(otp *router.FastRouter) {
+			otp.POST("/generate", api.GenerateOTP, router.MustAuthorized(false))
+			otp.POST("/verify", api.VerifyOTP, router.MustAuthorized(false))
+			otp.POST("/resend", api.ResendOTP, router.MustAuthorized(false))
+			otp.GET("/status", api.GetOTPStatus, router.MustAuthorized(false))
+		})
+
 	})
 	return myRouter
 }

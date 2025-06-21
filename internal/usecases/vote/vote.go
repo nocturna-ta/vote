@@ -23,6 +23,37 @@ func (m *Module) CastVote(ctx context.Context, req *request.CastVoteRequest) (*r
 		vote *model.Vote
 	)
 
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+
+	isOTPValid, err := m.otpUc.ValidateOTPToken(ctx, req.VoterID, "vote_cast", req.OTPToken)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":      err,
+			"request_id": ctx.Value("request_id"),
+			"voter_id":   req.VoterID,
+		}).ErrorWithCtx(ctx, "[CastVote] Failed to validate OTP token")
+		return nil, &custerr.ErrChain{
+			Message: "failed to validate OTP token",
+			Cause:   err,
+			Code:    400,
+			Type:    response2.ErrInternalServerError,
+		}
+	}
+
+	if !isOTPValid {
+		log.WithFields(log.Fields{
+			"voter_id":   req.VoterID,
+			"request_id": ctx.Value("request_id"),
+		}).WarnWithCtx(ctx, "[CastVote] Invalid or expired OTP token")
+		return nil, &custerr.ErrChain{
+			Message: "Invalid or expired OTP token. Please generate a new OTP.",
+			Code:    401,
+			Type:    response2.ErrUnauthorized,
+		}
+	}
+
 	transaction := func(txCtx context.Context) (any, error) {
 		vote, err := model.ConstructCastVote(req, m.encryptor)
 		if err != nil {

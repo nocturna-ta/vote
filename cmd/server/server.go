@@ -2,6 +2,9 @@ package server
 
 import (
 	"context"
+	"github.com/nocturna-ta/golib/cache"
+	_ "github.com/nocturna-ta/golib/cache/redis"
+	"github.com/nocturna-ta/golib/cache/redlock"
 	"github.com/nocturna-ta/golib/database/sql"
 	"github.com/nocturna-ta/golib/log"
 	"github.com/nocturna-ta/vote/config"
@@ -44,6 +47,10 @@ func run(cmd *cobra.Command, args []string) error {
 		ConnMaxLifetime: cfg.Database.ConnMaxLifetime,
 	}, sql.DriverPostgres)
 
+	redLock := redlock.New(&redlock.Config{
+		ConnectionUrl: cfg.Redis.Connection,
+	})
+
 	client, err := ethereum.GetEthereumClient(&cfg.Blockchain)
 	if err != nil {
 		return err
@@ -57,11 +64,18 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	redis, err := cache.New(cfg.Redis.Connection)
+	if err != nil {
+		log.Fatalf("Failed to instantiate redis client: %v", err)
+	}
+
 	appContainer := newContainer(&options{
 		Cfg:       cfg,
-		Client:    client,
 		DB:        database,
+		Client:    client,
 		Publisher: publisher,
+		RedLock:   redLock,
+		Cache:     redis,
 	})
 
 	electionScheduler := scheduler.NewElectionSyncScheduler(appContainer.ElectionTimeUc)
@@ -79,6 +93,7 @@ func run(cmd *cobra.Command, args []string) error {
 		Cfg:            appContainer.Cfg,
 		VoteUc:         appContainer.VoteUc,
 		ElectionTimeUc: appContainer.ElectionTimeUc,
+		OtpUc:          appContainer.OtpUc,
 	})
 
 	go server.Run()

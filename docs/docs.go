@@ -469,6 +469,195 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/otp/generate": {
+            "post": {
+                "description": "Generate a new OTP for the specified voter and purpose",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Generate OTP",
+                "parameters": [
+                    {
+                        "description": "Generate OTP request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GenerateOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.GenerateOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/otp/resend": {
+            "post": {
+                "description": "Resend OTP for the specified voter and purpose",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Resend OTP",
+                "parameters": [
+                    {
+                        "description": "Resend OTP request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResendOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ResendOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/otp/status": {
+            "get": {
+                "description": "Get the current status of OTP for a voter and purpose",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Get OTP Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Voter ID",
+                        "name": "voter_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "OTP Purpose",
+                        "name": "purpose",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OTPStatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/otp/verify": {
+            "post": {
+                "description": "Verify the provided OTP code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Verify OTP",
+                "parameters": [
+                    {
+                        "description": "Verify OTP request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.VerifyOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/controller.jsonResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.VerifyOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/vote/cast": {
             "post": {
                 "description": "Cast a vote",
@@ -611,6 +800,9 @@ const docTemplate = `{
                 "election_pair_id": {
                     "type": "string"
                 },
+                "otp_token": {
+                    "type": "string"
+                },
                 "region": {
                     "type": "string"
                 },
@@ -639,6 +831,36 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GenerateOTPRequest": {
+            "type": "object",
+            "required": [
+                "purpose",
+                "voter_id"
+            ],
+            "properties": {
+                "purpose": {
+                    "type": "string"
+                },
+                "voter_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ResendOTPRequest": {
+            "type": "object",
+            "required": [
+                "purpose",
+                "voter_id"
+            ],
+            "properties": {
+                "purpose": {
+                    "type": "string"
+                },
+                "voter_id": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateElectionTimeRequest": {
             "type": "object",
             "properties": {
@@ -652,6 +874,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.VerifyOTPRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "purpose",
+                "voter_id"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "voter_id": {
                     "type": "string"
                 }
             }
@@ -724,6 +965,116 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GenerateOTPResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "remaining_attempts": {
+                    "type": "integer"
+                },
+                "time_remaining_seconds": {
+                    "type": "string"
+                },
+                "voter_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OTPStatusResponse": {
+            "type": "object",
+            "properties": {
+                "attempt_count": {
+                    "type": "integer"
+                },
+                "can_resend": {
+                    "type": "boolean"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "remaining_attempts": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "time_remaining_seconds": {
+                    "type": "string"
+                },
+                "voter_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ResendOTPResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "remaining_attempts": {
+                    "type": "integer"
+                },
+                "time_remaining_seconds": {
+                    "type": "string"
+                },
+                "voter_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.VerifyOTPResponse": {
+            "type": "object",
+            "properties": {
+                "is_valid": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "otp_token": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "token_expiry": {
+                    "type": "string"
+                },
+                "verified_at": {
+                    "type": "string"
+                },
+                "voter_id": {
                     "type": "string"
                 }
             }

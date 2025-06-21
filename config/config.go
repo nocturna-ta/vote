@@ -16,6 +16,8 @@ type (
 		Kafka      KafkaConfig      `yaml:"Kafka"`
 		Encryption EncryptionConfig `yaml:"Encryption"`
 		GrpcServer GrpcServerConfig `yaml:"GrpcServer"`
+		Redis      RedisConfig      `yaml:"RedisConfig"`
+		OTP        OTPConfig        `yaml:"OTP"`
 	}
 
 	ServerConfig struct {
@@ -100,6 +102,16 @@ type (
 		Value        string `yaml:"Value" env:"KAFKA_TOPIC_VALUE"`
 		ErrorHandler string `yaml:"ErrorHandler"`
 		WithBackOff  bool   `yaml:"WithBackOff"`
+	}
+	RedisConfig struct {
+		Connection string `yaml:"Connection"`
+	}
+
+	OTPConfig struct {
+		Length     int           `yaml:"Length" env:"OTP_LENGTH" default:"6"`
+		TTL        time.Duration `yaml:"TTL" env:"OTP_TTL" default:"5m"`
+		MaxRetries int           `yaml:"MaxRetries" env:"OTP_MAX_RETRIES" default:"3"`
+		Enabled    bool          `yaml:"Enabled" env:"OTP_ENABLED" default:"true"`
 	}
 )
 
