@@ -7,10 +7,12 @@ import (
 	"github.com/nocturna-ta/golib/cache/redlock"
 	"github.com/nocturna-ta/golib/database/sql"
 	"github.com/nocturna-ta/golib/log"
+	"github.com/nocturna-ta/golib/utils/encryption"
 	"github.com/nocturna-ta/vote/config"
 	"github.com/nocturna-ta/vote/internal/handler/api"
 	"github.com/nocturna-ta/vote/internal/infrastructures/ethereum"
 	"github.com/nocturna-ta/vote/internal/infrastructures/kafka"
+	"github.com/nocturna-ta/vote/internal/infrastructures/sms"
 	"github.com/nocturna-ta/vote/internal/scheduler"
 	"github.com/spf13/cobra"
 	"os"
@@ -69,6 +71,16 @@ func run(cmd *cobra.Command, args []string) error {
 		log.Fatalf("Failed to instantiate redis client: %v", err)
 	}
 
+	smsProvider, err := sms.NewSMSProvider(cfg.SMS)
+	if err != nil {
+		log.Fatalf("Failed to instantiate SMS provider: %v", err)
+	}
+
+	encryptor, err := encryption.NewEncryption(cfg.Encryption.Key)
+	if err != nil {
+		log.Fatalf("Failed to instantiate encryption service: %v", err)
+	}
+
 	appContainer := newContainer(&options{
 		Cfg:       cfg,
 		DB:        database,
@@ -76,6 +88,8 @@ func run(cmd *cobra.Command, args []string) error {
 		Publisher: publisher,
 		RedLock:   redLock,
 		Cache:     redis,
+		SMS:       smsProvider,
+		Encryptor: encryptor,
 	})
 
 	electionScheduler := scheduler.NewElectionSyncScheduler(appContainer.ElectionTimeUc)

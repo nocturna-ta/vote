@@ -12,6 +12,7 @@ import (
 	txSql "github.com/nocturna-ta/golib/txmanager/sql"
 	"github.com/nocturna-ta/golib/utils/encryption"
 	"github.com/nocturna-ta/vote/config"
+	"github.com/nocturna-ta/vote/internal/infrastructures/sms"
 	"github.com/nocturna-ta/vote/internal/interfaces/dao"
 	"github.com/nocturna-ta/vote/internal/usecases"
 	"github.com/nocturna-ta/vote/internal/usecases/election_time"
@@ -34,20 +35,17 @@ type options struct {
 	Publisher event.MessagePublisher
 	RedLock   redlock.RedLock
 	Cache     cache.Cache
+	SMS       sms.SMSProvider
+	Encryptor *encryption.Encryption
 }
 
 func newContainer(opts *options) *container {
-
-	encryptor, err := encryption.NewEncryption(opts.Cfg.Encryption.Key)
-	if err != nil {
-		log.Fatal("Failed to instantiate encryption service", err)
-	}
 
 	voteRepo := dao.NewVoteRepository(&dao.OptsVoteRepository{
 		Client:          opts.Client,
 		ContractAddress: common.HexToAddress(opts.Cfg.Blockchain.ElectionManagerAddress),
 		DB:              opts.DB,
-		Encryptor:       encryptor,
+		Encryptor:       opts.Encryptor,
 	})
 
 	electionTimeRepo := dao.NewElectionTimeRepository(&dao.OptsElectionTimeRepository{
@@ -65,9 +63,11 @@ func newContainer(opts *options) *container {
 	}
 
 	otpUc := otp.New(&otp.Options{
-		Redis:     opts.Cache,
-		RedLock:   opts.RedLock,
-		OtpConfig: opts.Cfg.OTP,
+		Redis:       opts.Cache,
+		RedLock:     opts.RedLock,
+		OtpConfig:   opts.Cfg.OTP,
+		SMSProvider: opts.SMS,
+		SMSConfig:   opts.Cfg.SMS,
 	})
 
 	voteUc := vote.New(&vote.Opts{
@@ -75,7 +75,7 @@ func newContainer(opts *options) *container {
 		TxMgr:       txMgr,
 		Publisher:   opts.Publisher,
 		Topics:      opts.Cfg.Kafka.Topics,
-		Encryptor:   encryptor,
+		Encryptor:   opts.Encryptor,
 		OTPUseCases: otpUc,
 	})
 

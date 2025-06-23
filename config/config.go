@@ -18,6 +18,7 @@ type (
 		GrpcServer GrpcServerConfig `yaml:"GrpcServer"`
 		Redis      RedisConfig      `yaml:"RedisConfig"`
 		OTP        OTPConfig        `yaml:"OTP"`
+		SMS        SMSConfig        `yaml:"SMS"`
 	}
 
 	ServerConfig struct {
@@ -112,6 +113,24 @@ type (
 		TTL        time.Duration `yaml:"TTL" env:"OTP_TTL" default:"5m"`
 		MaxRetries int           `yaml:"MaxRetries" env:"OTP_MAX_RETRIES" default:"3"`
 		Enabled    bool          `yaml:"Enabled" env:"OTP_ENABLED" default:"true"`
+		SendSMS    bool          `yaml:"SendSMS" env:"OTP_SEND_SMS" default:"false"`
+	}
+
+	SMSConfig struct {
+		Provider  string       `yaml:"Provider" env:"SMS_PROVIDER"`
+		Enabled   bool         `yaml:"Enabled" env:"SMS_ENABLED" default:"false"`
+		Twilio    TwilioConfig `yaml:"Twilio"`
+		Templates SMSTemplates `yaml:"Templates"`
+	}
+
+	TwilioConfig struct {
+		AccountSID string `yaml:"AccountSID" env:"TWILIO_ACCOUNT_SID"`
+		AuthToken  string `yaml:"AuthToken" env:"TWILIO_AUTH_TOKEN"`
+		FromNumber string `yaml:"FromNumber" env:"TWILIO_FROM_NUMBER"`
+	}
+
+	SMSTemplates struct {
+		OTPMessage string `yaml:"OTPMessage"`
 	}
 )
 

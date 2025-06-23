@@ -826,10 +826,14 @@
         "request.GenerateOTPRequest": {
             "type": "object",
             "required": [
+                "phone_number",
                 "purpose",
                 "voter_id"
             ],
             "properties": {
+                "phone_number": {
+                    "type": "string"
+                },
                 "purpose": {
                     "type": "string"
                 },
@@ -841,10 +845,14 @@
         "request.ResendOTPRequest": {
             "type": "object",
             "required": [
+                "phone_number",
                 "purpose",
                 "voter_id"
             ],
             "properties": {
+                "phone_number": {
+                    "type": "string"
+                },
                 "purpose": {
                     "type": "string"
                 },

@@ -834,10 +834,14 @@ const docTemplate = `{
         "request.GenerateOTPRequest": {
             "type": "object",
             "required": [
+                "phone_number",
                 "purpose",
                 "voter_id"
             ],
             "properties": {
+                "phone_number": {
+                    "type": "string"
+                },
                 "purpose": {
                     "type": "string"
                 },
@@ -849,10 +853,14 @@ const docTemplate = `{
         "request.ResendOTPRequest": {
             "type": "object",
             "required": [
+                "phone_number",
                 "purpose",
                 "voter_id"
             ],
             "properties": {
+                "phone_number": {
+                    "type": "string"
+                },
                 "purpose": {
                     "type": "string"
                 },

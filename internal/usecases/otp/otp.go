@@ -30,6 +30,16 @@ func (m *Module) GenerateOTP(ctx context.Context, req *request.GenerateOTPReques
 		}
 	}
 
+	if m.smsConfig.Enabled && req.PhoneNumber != "" {
+		if err := m.smsProvider.ValidatePhoneNumber(req.PhoneNumber); err != nil {
+			return nil, &custerr.ErrChain{
+				Message: fmt.Sprintf("Invalid phone number: %s", err.Error()),
+				Code:    400,
+				Type:    response2.ErrBadRequest,
+			}
+		}
+	}
+
 	lockKey := fmt.Sprintf("otp:generate:%s:%s", req.VoterID, req.Purpose)
 
 	err := m.redLock.AcquireLockWithTTL(ctx, lockKey, 30*time.Second, 1)
@@ -89,6 +99,23 @@ func (m *Module) GenerateOTP(ctx context.Context, req *request.GenerateOTPReques
 			Message: "Failed to store OTP",
 			Code:    500,
 			Type:    response2.ErrInternalServerError,
+		}
+	}
+
+	if m.smsConfig.Enabled && req.PhoneNumber != "" {
+		if err = m.sendOTPSMS(ctx, req.PhoneNumber, otp.Code); err != nil {
+			log.WithFields(log.Fields{
+				"error":        err,
+				"voter_id":     req.VoterID,
+				"purpose":      req.Purpose,
+				"phone_number": req.PhoneNumber,
+			}).ErrorWithCtx(ctx, "[GenerateOTP] Failed to send OTP via SMS")
+		} else {
+			log.WithFields(log.Fields{
+				"voter_id":     req.VoterID,
+				"purpose":      req.Purpose,
+				"phone_number": req.PhoneNumber,
+			}).InfoWithCtx(ctx, "[GenerateOTP] OTP sent via SMS successfully")
 		}
 	}
 
@@ -246,8 +273,9 @@ func (m *Module) ResendOTP(ctx context.Context, req *request.ResendOTPRequest) (
 	}
 
 	genReq := &request.GenerateOTPRequest{
-		VoterID: req.VoterID,
-		Purpose: req.Purpose,
+		VoterID:     req.VoterID,
+		Purpose:     req.Purpose,
+		PhoneNumber: req.PhoneNumber,
 	}
 
 	_ = m.deleteOTPFromRedis(ctx, req.VoterID, req.Purpose)
