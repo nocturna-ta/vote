@@ -83,12 +83,6 @@ OTP:
 SMS:
   Provider: "mock"
   Enabled: true
-  # Twilio Configuration
-  Twilio:
-    AccountSID: "AC0ed8ca3dad8a1ceb346971a87a8b6358"
-    AuthToken: "7e03d95b7e3a829eca5ab9b666f2d6b3"
-    FromNumber: "+6281323203829"  # Your Twilio phone number
-
   # SMS Templates
   Templates:
     OTPMessage: "Your voting OTP code is: {{.Code}}. Valid for {{.Minutes}} minutes. Do not share this code."
