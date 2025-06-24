@@ -14,20 +14,18 @@ export let options = {
 }
 
 export default function (){
-    const actions = Math.floor(Math.random() * 3) + 1;
+    const actions = Math.floor(Math.random() * 3) + 3;
 
     for (let i = 0; i < actions; i++){
         const scenario = Math.random()
 
         if (scenario < 0.7){
             castVote()
-        }else if (scenario < 0.9){
-            checkVoteStatus()
-        }else{
+        } else{
             healthCheck()
         }
 
-        randomSleep(0.1, 0.5)
+        randomSleep(0.05, 0.2)
 
     }
 }

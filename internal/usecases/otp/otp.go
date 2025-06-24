@@ -349,6 +349,8 @@ func (m *Module) ValidateOTPToken(ctx context.Context, voterID, purpose, token s
 		return true, nil
 	}
 
+	fmt.Println("APALAH")
+
 	tokenKey := fmt.Sprintf("otp:token:%s:%s", voterID, purpose)
 
 	var storedToken string

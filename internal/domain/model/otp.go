@@ -30,7 +30,7 @@ type OTP struct {
 
 func GenerateOTP(length int) (string, error) {
 	if length <= 0 {
-		length = 6
+		length = 4
 	}
 
 	digits := make([]byte, length)
@@ -46,7 +46,7 @@ func GenerateOTP(length int) (string, error) {
 }
 
 func NewOTP(voterID, purpose string, ttl time.Duration, maxAttempts int) (*OTP, error) {
-	code, err := GenerateOTP(6)
+	code, err := GenerateOTP(4)
 	if err != nil {
 		return nil, err
 	}

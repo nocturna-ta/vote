@@ -19,20 +19,9 @@ export default function (){
     if(userJourney < 0.1){
         healthCheck()
     }else if (userJourney < 0.6) {
-        const {voteId} = castVote()
-        randomSleep(2, 5)
-
-        if(voteId){
-            checkVoteStatus(voteId);
-            randomSleep(1, 3);
-
-            if (Math.random() < 0.3){
-                checkVoteStatus(voteId)
-            }
-        }
-    }else{
-        checkVoteStatus()
+        castVote()
+        randomSleep(0.1, 0.3)
     }
 
-    randomSleep(2,8);
+    randomSleep(0.1,1);
 }

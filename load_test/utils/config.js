@@ -2,7 +2,7 @@ export const config = {
     base_url: __ENV.BASE_URL || 'http://localhost:8902',
 
     threshold: {
-        http_req_duration: ['p(95)<500'],
+        http_req_duration: ['p(95)<50'],
         http_req_failed: ['rate<0.01'],
         http_reqs: ['rate>100'],
     },
@@ -14,15 +14,15 @@ export const config = {
         load: [
             {
                 duration: '2m',
-                target: 10
+                target: 50
             },
             {
                 duration: '5m',
-                target: 10
+                target: 100
             },
             {
                 duration: '2m',
-                target: 0
+                target: 0,
             }
         ],
         stress: [

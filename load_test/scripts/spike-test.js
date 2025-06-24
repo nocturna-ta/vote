@@ -8,15 +8,13 @@ export let options = {
     thresholds: {
         http_req_duration: ['p(95)<3000'],
         http_req_failed: ['rate<0.3'],
+        http_reqs: ['rate>150']
     }
 }
 
 export default function (){
     if (Math.random() < 0.8){
         castVote()
-    }else{
-        checkVoteStatus()
     }
-
-    randomSleep(0.1, 1)
+    randomSleep(0.05, 0.2)
 }

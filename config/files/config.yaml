@@ -74,11 +74,11 @@ RedisConfig:
   Connection: "redis://:@localhost:6379/vote:"
 
 OTP:
-  Length: 6           # OTP code length
-  TTL: 5m            # OTP code validity period
-  MaxRetries: 3      # Maximum verification attempts
-  Enabled: false
-  SendSMS: false
+  Length: 4
+  TTL: 5m
+  MaxRetries: 3
+  Enabled: true
+  SendSMS: true
 
 SMS:
   Provider: "mock"

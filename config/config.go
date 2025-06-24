@@ -109,11 +109,11 @@ type (
 	}
 
 	OTPConfig struct {
-		Length     int           `yaml:"Length" env:"OTP_LENGTH" default:"6"`
-		TTL        time.Duration `yaml:"TTL" env:"OTP_TTL" default:"5m"`
-		MaxRetries int           `yaml:"MaxRetries" env:"OTP_MAX_RETRIES" default:"3"`
-		Enabled    bool          `yaml:"Enabled" env:"OTP_ENABLED" default:"true"`
-		SendSMS    bool          `yaml:"SendSMS" env:"OTP_SEND_SMS" default:"false"`
+		Length     int           `yaml:"Length"`
+		TTL        time.Duration `yaml:"TTL"`
+		MaxRetries int           `yaml:"MaxRetries"`
+		Enabled    bool          `yaml:"Enabled"`
+		SendSMS    bool          `yaml:"SendSMS"`
 	}
 
 	SMSConfig struct {
