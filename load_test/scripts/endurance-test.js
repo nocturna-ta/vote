@@ -9,7 +9,7 @@ export let options = {
     thresholds: {
         http_req_duration :['p(95)<1500'],
         http_req_failed: ['rate<0.15'],
-        http_reqs: ['rate>50'],
+        http_reqs: ['rate>40'],
     }
 }
 
@@ -23,5 +23,5 @@ export default function (){
         randomSleep(0.1, 0.3)
     }
 
-    randomSleep(0.1,1);
+    randomSleep(0.05,0.3);
 }

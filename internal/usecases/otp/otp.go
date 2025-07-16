@@ -220,14 +220,16 @@ func (m *Module) VerifyOTP(ctx context.Context, req *request.VerifyOTPRequest) (
 			"purpose":  req.Purpose,
 		}).InfoWithCtx(ctx, "[VerifyOTP] OTP verified successfully")
 
+		loc, _ := time.LoadLocation("Asia/Jakarta") // WIB = UTC+7
+
 		return &response.VerifyOTPResponse{
 			VoterID:     req.VoterID,
 			Purpose:     req.Purpose,
 			IsValid:     true,
 			Message:     "OTP verified successfully",
-			VerifiedAt:  otp.VerifiedAt.Format(time.RFC3339),
+			VerifiedAt:  otp.VerifiedAt.In(loc).Format(time.RFC3339),
 			OTPToken:    token,
-			TokenExpiry: time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+			TokenExpiry: time.Now().In(loc).Add(10 * time.Minute).Format(time.RFC3339),
 		}, nil
 	}
 
@@ -348,8 +350,6 @@ func (m *Module) ValidateOTPToken(ctx context.Context, voterID, purpose, token s
 	if !m.otpConfig.Enabled {
 		return true, nil
 	}
-
-	fmt.Println("APALAH")
 
 	tokenKey := fmt.Sprintf("otp:token:%s:%s", voterID, purpose)
 

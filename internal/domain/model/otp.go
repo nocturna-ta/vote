@@ -51,7 +51,9 @@ func NewOTP(voterID, purpose string, ttl time.Duration, maxAttempts int) (*OTP, 
 		return nil, err
 	}
 
-	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Jakarta") // WIB timezone
+	now := time.Now().In(loc)
+
 	return &OTP{
 		Code:         code,
 		VoterID:      voterID,
@@ -65,7 +67,9 @@ func NewOTP(voterID, purpose string, ttl time.Duration, maxAttempts int) (*OTP, 
 }
 
 func (o *OTP) IsExpired() bool {
-	return time.Now().After(o.ExpiresAt)
+	loc, _ := time.LoadLocation("Asia/Jakarta") // WIB timezone
+
+	return time.Now().In(loc).After(o.ExpiresAt)
 }
 
 func (o *OTP) IsValid() bool {

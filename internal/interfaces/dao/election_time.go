@@ -101,7 +101,7 @@ func (e *ElectionTimeRepository) UpdateElectionTime(ctx context.Context, electio
 	)
 
 	setQuery := `title = $1, description = $2, start_time = $3, end_time = $4, status = $5, is_active = $6, updated_at = $7`
-	whereQuery := `WHERE id = $8 AND is_deleted = false`
+	whereQuery := ` AND id = $8 AND is_deleted = false`
 	args = append(args, electionTime.Title, electionTime.Description, electionTime.StartTime, electionTime.EndTime,
 		electionTime.Status, electionTime.IsActive, time.Now(), electionTime.ID)
 

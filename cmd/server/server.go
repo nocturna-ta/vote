@@ -23,7 +23,7 @@ import (
 
 var (
 	serverHTTPCmd = &cobra.Command{
-		Use:   "server-http",
+		Use:   "serve-http",
 		Short: "Voting Service HTTP",
 		Long:  "Voting Service HTTP",
 		RunE:  run,
